@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
 
     // Admin Route Protection
     if (request.nextUrl.pathname.startsWith('/admin')) {
-        if (!currentUser || currentUser.role !== 'ADMIN') {
+        if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN')) {
             // Redirect unauthorized users to login (or dashboard if they are logged in but not admin)
             return NextResponse.redirect(new URL('/login', request.url));
         }
@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect logged in users away from login/register
     if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register') && currentUser) {
-        if (currentUser.role === 'ADMIN') {
+        if (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') {
             return NextResponse.redirect(new URL('/admin/dashboard', request.url));
         }
         return NextResponse.redirect(new URL('/dashboard', request.url));
