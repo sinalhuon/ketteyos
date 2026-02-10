@@ -14,7 +14,7 @@ export async function uploadAsset(formData: FormData) {
         console.error('[Upload Asset] No session found');
         return { error: 'Unauthorized: Please login again' };
     }
-    if (session.role !== 'ADMIN') {
+    if (session.role !== 'ADMIN' && session.role !== 'SUPER_ADMIN') {
         console.error('[Upload Asset] Invalid role:', session.role);
         return { error: `Unauthorized: You need ADMIN role. Current role: ${session.role}. Please logout and login again.` };
     }
