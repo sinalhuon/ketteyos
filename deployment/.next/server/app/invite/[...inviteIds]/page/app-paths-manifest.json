@@ -1,0 +1,3 @@
+{
+  "/invite/[...inviteIds]/page": "app/invite/[...inviteIds]/page.js"
+}

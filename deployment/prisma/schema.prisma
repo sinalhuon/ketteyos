@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x", "debian-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String
+  name             String?
+  profileImage     String?   @db.Text
+  role             String    @default("CLIENT") // CLIENT, ADMIN, SUPER_ADMIN
+  isSuperAdmin     Boolean   @default(false)
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  
+  events           Event[]
+  permissions      UserPermission[]
+  appSettingsUpdates AppSettings[]
+  
+  // Track who created this admin (if they are an admin)
+  createdBy        User?     @relation("AdminCreatedBy", fields: [createdById], references: [id])
+  createdById      String?
+  createdAdmins    User[]    @relation("AdminCreatedBy")
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String?  @unique
+  date        DateTime
+  location    String
+  description String?  @db.Text
+  eventType   String   @default("wedding") // wedding, birthday, housewarming, other
+  
+  // Customization
+  templateId  String   @default("premium-gold")
+  template    Template @relation(fields: [templateId], references: [codeKey])
+  musicUrl    String?
+  logoUrl     String?  @db.Text
+  logoSize    Int      @default(150)
+  
+  // Parents Info
+  groomFatherName    String?
+  groomMotherName    String?
+  brideFatherName    String?
+  brideMotherName    String?
+  
+  // Couple Names (Khmer)
+  groomFirstName     String?
+  groomLastName      String?
+  brideFirstName     String?
+  brideLastName      String?
+  
+  // Invitation Text
+  invitationMessage  String?  @db.Text
+  
+  // Event Details
+  eventTime          String?
+  venueDetails       String?  @db.Text
+  mapUrl             String?  @db.Text
+  
+  // Multi-Day Event Support
+  startDate          DateTime @default(now())  // First day (replaces eventDate)
+  endDate            DateTime?                  // Last day (null for single-day)
+  eventDays          String?  @db.Text          // JSON string: [{date, label, schedule, venue?, time?}]
+  
+  // Schedule (JSON string) - kept for backward compatibility
+  schedule           String?  @db.Text
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  guests      Guest[]
+  albumPhotos AlbumPhoto[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Guest {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  shortCode String?  @unique
+  token     String   @unique @default(uuid())
+  status    String   @default("PENDING") // PENDING, ACCEPTED, DECLINED, OPENED
+  
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  phoneNumber String?
+}
+
+model AlbumPhoto {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  imageUrl  String   @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Template {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  previewUrl  String?  @db.Text
+  codeKey     String   @unique // e.g. "premium-gold" - maps to React component
+  category    String   // Wedding, Birthday
+  
+  // Custom Video Assets
+  introVideoUrl      String?  @db.Text
+  transitionVideoUrl String?  @db.Text
+  backgroundVideoUrl String?  @db.Text
+  effectLayerUrl       String?  @db.Text
+  effectLayerOpacity   Float    @default(1.0) // 0.0 to 1.0
+  effectLayerBlendMode String   @default("screen") // screen, overlay, etc.
+
+
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  events      Event[]
+}
+
+model GlobalAsset {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // MUSIC, IMAGE, VIDEO
+  url         String   @db.Text
+  createdAt   DateTime @default(now())
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "users.view", "users.create", "templates.delete"
+  category    String   // e.g., "users", "templates", "assets", "events", "admins"
+  description String
+  createdAt   DateTime @default(now())
+  
+  userPermissions UserPermission[]
+}
+
+model UserPermission {
+  id           String   @id @default(uuid())
+  userId       String
+  permissionId String
+  granted      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, permissionId])
+}
+
+model AppSettings {
+  id          String   @id @default(uuid())
+  appName     String   @default("KETTEKYUOS")
+  appLogo     String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+  updatedById String?
+}

@@ -1,0 +1,20 @@
+{
+  "node": {
+    "401959434edc0e25c692a6cd8ee0d3f24f4c10ba0d": {
+      "workers": {
+        "app/admin/assets/new/page": {
+          "moduleId": 12479,
+          "async": false,
+          "exportedName": "uploadAsset",
+          "filename": "src/actions/assets.ts"
+        }
+      },
+      "layer": {
+        "app/admin/assets/new/page": "action-browser"
+      },
+      "exportedName": "uploadAsset",
+      "filename": "src/actions/assets.ts"
+    }
+  },
+  "edge": {}
+}
