@@ -2,8 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 import { getSession } from '@/lib/auth';
 
 export async function uploadAsset(formData: FormData) {
@@ -28,25 +27,18 @@ export async function uploadAsset(formData: FormData) {
     }
 
     try {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Create unique filename
-        const filename = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-        const uploadDir = path.join(process.cwd(), 'public/uploads', type.toLowerCase());
-        const filePath = path.join(uploadDir, filename);
-
-        // Save file
-        await writeFile(filePath, buffer);
+        // Upload to Vercel Blob
+        const filename = `${type.toLowerCase()}/${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const blob = await put(filename, file, {
+            access: 'public',
+        });
 
         // Create DB Record
-        const publicUrl = `/uploads/${type.toLowerCase()}/${filename}`;
-
         await prisma.globalAsset.create({
             data: {
                 name,
                 type,
-                url: publicUrl
+                url: blob.url
             }
         });
 
@@ -55,6 +47,6 @@ export async function uploadAsset(formData: FormData) {
 
     } catch (error) {
         console.error('Upload Error:', error);
-        return { error: 'Failed to upload file' };
+        return { error: 'Failed to upload file to Vercel Blob' };
     }
 }
