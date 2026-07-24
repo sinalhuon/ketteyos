@@ -735,9 +735,26 @@ function og_font_path($kind = 'body')
  * Convert Khmer Unicode string to Limon F1 Legacy ASCII string
  * so PHP GD imagettftext renders Khmer text 100% perfectly without HarfBuzz.
  */
-function og_unicode_to_limon($text)
+function og_normalize_khmer_unicode($text)
 {
     $text = (string) $text;
+    if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
+        return $text;
+    }
+
+    // Normalize out-of-order Khmer Unicode characters (Unicode L2/2022/22290 / sillsdev/khmer-normalizer)
+    // 1. Move Dependent Vowels (U+17B6..U+17C5) typed before Coeng (U+17D2 + U+1780..U+17B3) to AFTER Coeng
+    $text = preg_replace('/([\x{17B6}-\x{17C5}])(\x{17D2}[\x{1780}-\x{17B3}])/u', '$2$1', $text);
+
+    // 2. Remove invisible zero-width spaces / joiners
+    $text = preg_replace('/[\x{200B}\x{200C}\x{200D}]+/u', '', $text);
+
+    return $text;
+}
+
+function og_unicode_to_limon($text)
+{
+    $text = og_normalize_khmer_unicode((string) $text);
     if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
         return $text;
     }
@@ -801,7 +818,7 @@ function og_unicode_to_limon($text)
         "\xE1\x9F\x92\xE1\x9E\x9A" => "\xAE", // ្រ (®)
         "\xE1\x9F\x92\xE1\x9E\x9B" => 'l',    // ្ល
         "\xE1\x9F\x92\xE1\x9E\x9C" => 'v',    // ្វ
-        "\xE1\x9F\x92\xE1\x9E\x9F" => 's',    // ្ស
+        "\xE1\x9F\x92\xE1\x9E\x9F" => 'S',    // ្ស (S)
         "\xE1\x9F\x92\xE1\x9E\xA0" => 'h',    // ្ហ
     ];
 
@@ -855,6 +872,7 @@ function og_unicode_to_limon($text)
         }
 
         $leftVowel = '';
+        $topVowel = '';
         $rightVowel = '';
         if ($vowel !== '') {
             if ($vowel === "\xE1\x9F\x81" || $vowel === "\xE1\x9F\x82" || $vowel === "\xE1\x9F\x83") {
@@ -865,8 +883,10 @@ function og_unicode_to_limon($text)
             } elseif ($vowel === "\xE1\x9F\x85") { // ៅ = េ + ៅ
                 $leftVowel = 'e';
                 $rightVowel = 'au';
-            } else {
+            } elseif ($vowel === "\xE1\x9E\xB6" || $vowel === "\xE1\x9E\xBD") {
                 $rightVowel = $vowelMap[$vowel] ?? '';
+            } else {
+                $topVowel = $vowelMap[$vowel] ?? '';
             }
         }
 
@@ -875,7 +895,7 @@ function og_unicode_to_limon($text)
             $signLimon = $signMap[$signs] ?? '';
         }
 
-        return $leftVowel . $preRo . $baseLimon . $rightVowel . $signLimon . $postCoengs;
+        return $leftVowel . $preRo . $baseLimon . $topVowel . $signLimon . $postCoengs . $rightVowel;
     }, $text);
 }
 
