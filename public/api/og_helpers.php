@@ -801,7 +801,7 @@ function og_unicode_to_limon($text)
         "\xE1\x9F\x87" => 'H', // ះ
         "\xE1\x9F\x89" => '"', // ៉
         "\xE1\x9F\x8A" => '~', // ៊
-        "\xE1\x9F\x8B" => 'b', // ់ (Bantoc)
+        "\xE1\x9F\x8B" => ';', // ់ (Bantoc - semicolon)
     ];
 
     $pattern = '/([\x{1780}-\x{17B3}])((\x{17D2}[\x{1780}-\x{17B3}])*)([\x{17B6}-\x{17C5}]?)([\x{17C6}-\x{17D3}]*)/u';
