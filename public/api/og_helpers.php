@@ -766,8 +766,8 @@ function og_unicode_to_limon($text)
         'ឃ' => 'C',
         'ង' => 'g',
         'ច' => 'c',
-        'ឆ' => 'C',
-        'ជ' => 'q',
+        'ឆ' => 'q',
+        'ជ' => 'C',
         'ឈ' => 'Q',
         'ញ' => 'j',
         'ដ' => 'd',
@@ -802,10 +802,10 @@ function og_unicode_to_limon($text)
         "\xE1\x9F\x92\xE1\x9E\x83" => "\xA4", // ្ឃ
         "\xE1\x9F\x92\xE1\x9E\x84" => "\xA5", // ្ង
         "\xE1\x9F\x92\xE1\x9E\x85" => "\xA6", // ្ច
-        "\xE1\x9F\x92\xE1\x9E\x86" => "\xA7", // ្ឆ
+        "\xE1\x9F\x92\xE1\x9E\x86" => 'q',    // ្ឆ
         "\xE1\x9F\x92\xE1\x9E\x87" => 'C',    // ្ជ
         "\xE1\x9F\x92\xE1\x9E\x88" => 'Q',    // ្ឈ
-        "\xE1\x9F\x92\xE1\x9E\x89" => 'J',    // ្ញ
+        "\xE1\x9F\x92\xE1\x9E\x89" => 'j',    // ្ញ
         "\xE1\x9F\x92\xE1\x9E\x8F" => "\xFE", // ្ត (þ)
         "\xE1\x9F\x92\xE1\x9E\x90" => 'T',    // ្ថ
         "\xE1\x9F\x92\xE1\x9E\x91" => 'd',    // ្ទ
@@ -813,6 +813,7 @@ function og_unicode_to_limon($text)
         "\xE1\x9F\x92\xE1\x9E\x93" => 'n',    // ្ន
         "\xE1\x9F\x92\xE1\x9E\x94" => ',',    // ្ប (,)
         "\xE1\x9F\x92\xE1\x9E\x95" => 'P',    // ្ផ
+        "\xE1\x9F\x92\xE1\x9E\x96" => '<',    // ្ព (<)
         "\xE1\x9F\x92\xE1\x9E\x98" => 'm',    // ្ម
         "\xE1\x9F\x92\xE1\x9E\x99" => 'y',    // ្យ
         "\xE1\x9F\x92\xE1\x9E\x9A" => "\xAE", // ្រ (®)
@@ -873,6 +874,7 @@ function og_unicode_to_limon($text)
 
         $leftVowel = '';
         $topVowel = '';
+        $bottomVowel = '';
         $rightVowel = '';
         if ($vowel !== '') {
             if ($vowel === "\xE1\x9F\x81" || $vowel === "\xE1\x9F\x82" || $vowel === "\xE1\x9F\x83") {
@@ -885,6 +887,8 @@ function og_unicode_to_limon($text)
                 $rightVowel = 'au';
             } elseif ($vowel === "\xE1\x9E\xB6" || $vowel === "\xE1\x9E\xBD") {
                 $rightVowel = $vowelMap[$vowel] ?? '';
+            } elseif ($vowel === "\xE1\x9E\xBB" || $vowel === "\xE1\x9E\xBC") { // ុ u, ូ U
+                $bottomVowel = $vowelMap[$vowel] ?? '';
             } else {
                 $topVowel = $vowelMap[$vowel] ?? '';
             }
@@ -895,7 +899,7 @@ function og_unicode_to_limon($text)
             $signLimon = $signMap[$signs] ?? '';
         }
 
-        return $leftVowel . $preRo . $baseLimon . $topVowel . $postCoengs . $rightVowel . $signLimon;
+        return $leftVowel . $preRo . $baseLimon . $topVowel . $postCoengs . $bottomVowel . $rightVowel . $signLimon;
     }, $text);
 }
 
