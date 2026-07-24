@@ -1,14 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { auth } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { login, user, loading: authLoading } = useAuth();
+
+    useEffect(() => {
+        if (!authLoading && user) {
+            if (user.isSuperAdmin || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/dashboard');
+            }
+        }
+    }, [user, authLoading, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,20 +31,23 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                body: JSON.stringify(formData),
-                headers: { 'Content-Type': 'application/json' },
-            });
+            const data = await auth.login(formData.email, formData.password);
 
-            const data = await res.json();
-
-            if (!res.ok) {
+            if (!data.success) {
                 throw new Error(data.error || 'Login failed');
             }
 
-            // Redirect to the URL provided by the API (admin or client dashboard)
-            router.push(data.redirectUrl || '/dashboard');
+            // Save to AuthContext
+            if (data.token && data.user) {
+                login(data.token, data.user);
+            }
+
+            // Redirect based on role
+            if (data.user?.isSuperAdmin || data.user?.role === 'ADMIN' || data.user?.role === 'SUPER_ADMIN') {
+                router.push('/admin/dashboard');
+            } else {
+                router.push('/dashboard');
+            }
 
         } catch (error) {
             console.error('Login error:', error);
@@ -67,13 +85,26 @@ export default function LoginPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            />
+                            <div className="relative mt-1">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    required
+                                    className="block w-full rounded-md border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-yellow-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -91,8 +122,8 @@ export default function LoginPage() {
                         </Link>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                             Don't have an account?{' '}
-                            <Link href="/register" className="text-yellow-600 hover:text-yellow-700">
-                                Sign up
+                            <Link href="/contact" className="text-yellow-600 hover:text-yellow-700">
+                                Contact us
                             </Link>
                         </p>
                     </div>

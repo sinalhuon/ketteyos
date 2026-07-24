@@ -1,0 +1,19 @@
+<svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 10 H220 L230 40 L220 70 H20 L10 40 Z" fill="url(#grad1)" stroke="url(#grad2)" stroke-width="3"/>
+<path d="M25 15 H215 L223 40 L215 65 H25 L17 40 Z" fill="none" stroke="url(#grad3)" stroke-width="1"/>
+<defs>
+<linearGradient id="grad1" x1="0" y1="0" x2="240" y2="80" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFF9E6" stop-opacity="0.9"/>
+<stop offset="1" stop-color="#FFEBB3" stop-opacity="0.9"/>
+</linearGradient>
+<linearGradient id="grad2" x1="0" y1="40" x2="240" y2="40" gradientUnits="userSpaceOnUse">
+<stop stop-color="#B38D4C"/>
+<stop offset="0.5" stop-color="#FCE19B"/>
+<stop offset="1" stop-color="#B38D4C"/>
+</linearGradient>
+<linearGradient id="grad3" x1="0" y1="0" x2="240" y2="80" gradientUnits="userSpaceOnUse">
+<stop stop-color="#B38D4C"/>
+<stop offset="1" stop-color="#84632C"/>
+</linearGradient>
+</defs>
+</svg>

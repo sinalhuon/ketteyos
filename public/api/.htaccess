@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Allow Authorization header to be passed to PHP
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+# Optional: Handle Authorization header for older Apache versions/FCGI
+<IfModule mod_fcgid.c>
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>

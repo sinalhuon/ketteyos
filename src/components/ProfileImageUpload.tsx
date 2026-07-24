@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Upload, X, User } from 'lucide-react';
 import Image from 'next/image';
+import { useToast } from '@/components/Toast';
 
 interface ProfileImageUploadProps {
     currentImage?: string | null;
@@ -11,6 +12,7 @@ interface ProfileImageUploadProps {
 }
 
 export function ProfileImageUpload({ currentImage, onUploadSuccess, onRemoveSuccess }: ProfileImageUploadProps) {
+    const { toast } = useToast();
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState<string | null>(currentImage || null);
     const [dragActive, setDragActive] = useState(false);
@@ -22,14 +24,14 @@ export function ProfileImageUpload({ currentImage, onUploadSuccess, onRemoveSucc
         // Validate file type
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            alert('Invalid file type. Only JPG, PNG, and WebP are allowed.');
+            toast.error('Invalid file type. Only JPG, PNG, and WebP are allowed.');
             return;
         }
 
         // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024;
         if (file.size > maxSize) {
-            alert('File too large. Maximum size is 5MB.');
+            toast.info('File too large. Maximum size is 5MB.');
             return;
         }
 
@@ -60,7 +62,7 @@ export function ProfileImageUpload({ currentImage, onUploadSuccess, onRemoveSucc
             onUploadSuccess(data.imageUrl);
         } catch (error) {
             console.error('Upload error:', error);
-            alert(error instanceof Error ? error.message : 'Failed to upload image');
+            toast.error(error instanceof Error ? error.message : 'Failed to upload image');
             setPreview(currentImage || null);
         } finally {
             setUploading(false);
@@ -88,7 +90,7 @@ export function ProfileImageUpload({ currentImage, onUploadSuccess, onRemoveSucc
             onRemoveSuccess();
         } catch (error) {
             console.error('Remove error:', error);
-            alert(error instanceof Error ? error.message : 'Failed to remove image');
+            toast.error(error instanceof Error ? error.message : 'Failed to remove image');
         } finally {
             setUploading(false);
         }

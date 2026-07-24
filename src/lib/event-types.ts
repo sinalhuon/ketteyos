@@ -8,13 +8,23 @@ export const EVENT_TYPES = {
     },
     birthday: {
         value: 'birthday',
-        label: 'ពិធីខូបកំណើត',
-        detailTitle: 'ពិធីខូបកំណើត'
+        label: 'ពិធីខួបកំណើត',
+        detailTitle: 'រីករាយពិធីខួបកំណើត'
+    },
+    knot_tying: {
+        value: 'knot_tying',
+        label: 'ពិធីកាត់ចំណងដៃ',
+        detailTitle: 'សិរីសួស្តីពីធីកាត់ចំណងដៃ'
     },
     housewarming: {
         value: 'housewarming',
         label: 'ពិធីឡើងគេហដ្ឋានថ្មី',
         detailTitle: 'ពិធីឡើងគេហដ្ឋានថ្មី'
+    },
+    movie_premiere: {
+        value: 'movie_premiere',
+        label: 'សម្ភោធខ្សែភាពយន្ត',
+        detailTitle: 'សម្ភោធខ្សែភាពយន្ត'
     },
     other: {
         value: 'other',

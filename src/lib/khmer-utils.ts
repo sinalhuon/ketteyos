@@ -63,10 +63,10 @@ export function toKhmerTime(date: Date): string {
 }
 
 /**
- * Parse a time string (e.g., "7:30 AM", "14:30", "2:30 PM") and format it to Khmer
+ * Parse a time string into an object with hour and minute
  */
-export function parseAndFormatKhmerTime(timeStr: string): string {
-    if (!timeStr) return '';
+export function parseTimeObject(timeStr: string): { hour: number, minute: number } | null {
+    if (!timeStr) return null;
 
     try {
         // Try to parse standard time formats
@@ -84,20 +84,30 @@ export function parseAndFormatKhmerTime(timeStr: string): string {
         let hour = parseInt(parts[0]);
         let minute = parts.length > 1 ? parseInt(parts[1]) : 0;
 
-        if (isNaN(hour)) return timeStr; // Fallback to original if can't parse
+        if (isNaN(hour)) return null;
 
         // Adjust hour based on AM/PM if provided
         if (isPM && hour < 12) hour += 12;
         if (isAM && hour === 12) hour = 0;
 
-        // Create a dummy date object to reuse toKhmerTime logic
-        const date = new Date();
-        date.setHours(hour, minute);
-
-        return toKhmerTime(date);
+        return { hour, minute };
     } catch (e) {
-        return timeStr; // Fallback
+        return null;
     }
+}
+
+/**
+ * Parse a time string (e.g., "7:30 AM", "14:30", "2:30 PM") and format it to Khmer
+ */
+export function parseAndFormatKhmerTime(timeStr: string): string {
+    const timeObj = parseTimeObject(timeStr);
+    if (!timeObj) return timeStr;
+
+    // Create a dummy date object to reuse toKhmerTime logic
+    const date = new Date();
+    date.setHours(timeObj.hour, timeObj.minute);
+
+    return toKhmerTime(date);
 }
 
 /**

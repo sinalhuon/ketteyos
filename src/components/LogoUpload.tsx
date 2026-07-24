@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 interface LogoUploadProps {
     currentLogo: string | null;
@@ -10,6 +11,7 @@ interface LogoUploadProps {
 }
 
 export function LogoUpload({ currentLogo, onUploadSuccess, onRemoveSuccess }: LogoUploadProps) {
+    const { toast } = useToast();
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
 
@@ -19,13 +21,13 @@ export function LogoUpload({ currentLogo, onUploadSuccess, onRemoveSuccess }: Lo
         // Validate file type
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
         if (!validTypes.includes(file.type)) {
-            alert('Invalid file type. Please upload JPG, PNG, SVG, or WebP.');
+            toast.error('Invalid file type. Please upload JPG, PNG, SVG, or WebP.');
             return;
         }
 
         // Validate file size (2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('File too large. Maximum size is 2MB.');
+            toast.info('File too large. Maximum size is 2MB.');
             return;
         }
 
@@ -47,10 +49,10 @@ export function LogoUpload({ currentLogo, onUploadSuccess, onRemoveSuccess }: Lo
             }
 
             onUploadSuccess(data.logoUrl);
-            alert('Logo uploaded successfully!');
+            toast.success('Logo uploaded successfully!');
         } catch (error) {
             console.error('Upload error:', error);
-            alert(error instanceof Error ? error.message : 'Failed to upload logo');
+            toast.error(error instanceof Error ? error.message : 'Failed to upload logo');
         } finally {
             setUploading(false);
         }
@@ -73,10 +75,10 @@ export function LogoUpload({ currentLogo, onUploadSuccess, onRemoveSuccess }: Lo
             }
 
             onRemoveSuccess();
-            alert('Logo removed successfully!');
+            toast.success('Logo removed successfully!');
         } catch (error) {
             console.error('Remove error:', error);
-            alert(error instanceof Error ? error.message : 'Failed to remove logo');
+            toast.error(error instanceof Error ? error.message : 'Failed to remove logo');
         } finally {
             setUploading(false);
         }

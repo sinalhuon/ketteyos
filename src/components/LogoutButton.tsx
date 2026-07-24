@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 export function LogoutButton() {
     const router = useRouter();
     const handleLogout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+        document.cookie = 'session=; path=/; max-age=0';
         router.push('/login');
-        router.refresh();
     };
 
     return (

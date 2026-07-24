@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "NEXT_PUBLIC_API_URL=/api next build",
+    "deploy:zip": "npm run build && bash scripts/package-deployment.sh",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "php": "php -S localhost:8000 -t public"
   },
   "dependencies": {
+    "@dotlottie/react-player": "^1.6.19",
+    "@lottiefiles/dotlottie-react": "^0.17.15",
     "@prisma/client": "^5.22.0",
     "@types/bcrypt": "^6.0.0",
     "@vercel/blob": "^2.2.0",
@@ -16,6 +20,8 @@
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.31.0",
     "jose": "^6.1.3",
     "lucide-react": "^0.563.0",

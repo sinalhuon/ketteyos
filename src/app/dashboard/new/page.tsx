@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Loader2, X } from 'lucide-react';
+import { ChevronLeft, AlertCircle, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { getAllEventTypes } from '@/lib/event-types';
+import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function NewEventPage() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -15,9 +18,10 @@ export default function NewEventPage() {
         date: '',
         location: '',
         eventType: 'wedding',
-        schedule: ''
+        schedule: '' // We will keep this as string for the API but manage state separately for UI if needed
     });
 
+    // Schedule state management (Client-side only)
     const [scheduleItems, setScheduleItems] = useState<any[]>([]);
 
     const updateScheduleJSON = (items: any[]) => {
@@ -30,7 +34,7 @@ export default function NewEventPage() {
 
     const addDay = () => {
         const defaultDate = formData.date ? formData.date.split('T')[0] : '';
-        updateScheduleJSON([...scheduleItems, { date: defaultDate, activities: [{ time: '', activity: '' }] }]);
+        updateScheduleJSON([...scheduleItems, { date: defaultDate, activities: [{ time: '', activity: '', activityEn: '' }] }]);
     };
 
     const removeDay = (index: number) => {
@@ -46,7 +50,7 @@ export default function NewEventPage() {
 
     const addActivityToDay = (dayIndex: number) => {
         const newItems = [...scheduleItems];
-        newItems[dayIndex].activities = [...newItems[dayIndex].activities, { time: '', activity: '' }];
+        newItems[dayIndex].activities = [...newItems[dayIndex].activities, { time: '', activity: '', activityEn: '' }];
         updateScheduleJSON(newItems);
     };
 
@@ -66,21 +70,30 @@ export default function NewEventPage() {
         e.preventDefault();
         setLoading(true);
 
-        const res = await fetch('/api/events', {
-            method: 'POST',
-            body: JSON.stringify(formData),
-            headers: { 'Content-Type': 'application/json' },
-        });
+        try {
+            const data = await apiFetch('events.php', {
+                method: 'POST',
+                body: JSON.stringify(formData),
+            });
 
-        if (res.ok) {
-            router.push('/dashboard');
-            router.refresh();
-        } else {
-            const data = await res.json();
-            setError(data.details || data.error || 'Failed to create event. Please try again.');
+            if (data && data.success) {
+                router.push('/dashboard');
+            } else {
+                setError(data?.error || 'Failed to create event.');
+            }
+        } catch (err) {
+            setError('An error occurred while creating the event.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
+
+    // Check if user has a plan
+    useEffect(() => {
+        if (!authLoading && !user?.planId) {
+            router.push('/dashboard');
+        }
+    }, [user, authLoading, router]);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 flex justify-center items-start">
@@ -193,18 +206,24 @@ export default function NewEventPage() {
                                         <div className="space-y-2">
                                             {day.activities.map((activity: any, actIndex: number) => (
                                                 <div key={actIndex} className="flex gap-2 items-start">
-                                                    <div className="grid grid-cols-4 gap-2 flex-1">
+                                                    <div className="grid grid-cols-1 md:grid-cols-7 gap-2 flex-1">
                                                         <input
                                                             type="time"
                                                             value={activity.time}
                                                             onChange={(e) => handleActivityChange(dayIndex, actIndex, 'time', e.target.value)}
-                                                            className="rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-[10px] dark:text-white outline-none focus:ring-1 focus:ring-yellow-500"
+                                                            className="md:col-span-1 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-[10px] dark:text-white outline-none focus:ring-1 focus:ring-yellow-500"
                                                         />
                                                         <input
                                                             value={activity.activity}
                                                             onChange={(e) => handleActivityChange(dayIndex, actIndex, 'activity', e.target.value)}
-                                                            placeholder="Activity"
-                                                            className="col-span-3 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-[10px] dark:text-white outline-none focus:ring-1 focus:ring-yellow-500"
+                                                            placeholder="Activity in Khmer"
+                                                            className="md:col-span-3 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-[10px] dark:text-white outline-none focus:ring-1 focus:ring-yellow-500"
+                                                        />
+                                                        <input
+                                                            value={activity.activityEn || ''}
+                                                            onChange={(e) => handleActivityChange(dayIndex, actIndex, 'activityEn', e.target.value)}
+                                                            placeholder="Activity in English"
+                                                            className="md:col-span-3 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-[10px] dark:text-white outline-none focus:ring-1 focus:ring-yellow-500"
                                                         />
                                                     </div>
                                                     <button

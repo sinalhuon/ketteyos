@@ -1,8 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700;900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Moul&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('/assets/fonts/KantumruyPro-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('/assets/fonts/KantumruyPro-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Kantumruy Pro';
+  src: url('/assets/fonts/KantumruyPro-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Koulen';
+  src: url('/assets/fonts/Koulen-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Moul';
+  src: url('/assets/fonts/Moul-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Taprom';
+  src: url('/assets/fonts/Taprom-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suwannaphum';
+  src: url('/assets/fonts/Suwannaphum-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
+  --background: #FDFBF7;
   --foreground: #171717;
+  --font-khmer: 'Kantumruy Pro', 'Hanuman', sans-serif;
 }
 
 @theme inline {
@@ -17,8 +77,50 @@
   --foreground: #ededed;
 }
 
+/* ── Khmer script: no letter-spacing (prevents character gaps on mobile) ──── */
+[class*="koulen"],
+[class*="moul"],
+[class*="kantumruy"],
+[class*="hanuman"],
+[class*="taprom"] {
+  letter-spacing: 0 !important;
+}
+
+/* Safari/iPhone Khmer rendering fix */
+[lang="km"],
+[lang="km"] *,
+.khmer-language,
+.khmer-language * {
+  letter-spacing: 0 !important;
+  word-spacing: 0 !important;
+  text-transform: none !important;
+  font-kerning: none;
+  font-feature-settings: "kern" 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Global Khmer font fix ─────────────────────────────────────────────────── */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Kantumruy Pro first, Hanuman as fallback, then system fonts */
+  font-family: 'Kantumruy Pro', 'Hanuman', 'Khmer OS', 'Khmer OS System', Arial, Helvetica, sans-serif;
+  /* Khmer script needs more line-height than Latin */
+  line-height: 1.9;
+}
+
+/* Headings get slightly tighter but still Khmer-safe */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Kantumruy Pro', 'Hanuman', 'Khmer OS', Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Ensure all text nodes inside the app use Khmer fonts */
+* {
+  font-family: inherit;
+}
+
+/* Override Geist for code/mono only */
+code, pre, kbd, samp {
+  font-family: var(--font-geist-mono), monospace;
 }

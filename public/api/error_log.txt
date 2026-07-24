@@ -1,0 +1,14 @@
+[2026-02-17 13:23:42] Retry failed: SQLSTATE[HY093]: Invalid parameter number: parameter was not defined
+[2026-02-17 13:23:44] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:23:47] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:23:51] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:26:07] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:26:13] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:27:32] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:27:44] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:28:26] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-02-17 13:28:27] Database error: SQLSTATE[HY000]: General error: 1366 Incorrect integer value: '' for column 'showAppName' at row 1
+[2026-03-21 09:43:29] Upload failed: Unsupported music format. Please upload an MP3 or WAV file.
+[2026-07-22 10:32:05] Upload failed: No file uploaded
+[2026-07-22 10:39:02] Upload failed: No file uploaded
+[2026-07-22 10:39:31] Upload failed: No file uploaded

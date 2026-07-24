@@ -1,0 +1,56 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Serve index.html or index.php as directory index
+  DirectoryIndex index.php index.html
+  
+  # Disable MultiViews to prevent Apache from guessing "invite" directory over RewriteRule
+  Options -MultiViews
+
+
+  # API Routing: If request goes to /api, let it be handled by existing files/folders
+  RewriteCond %{REQUEST_URI} ^/api [NC]
+  RewriteRule ^ - [L]
+
+  # Allow access to .well-known for SSL verification (Let's Encrypt / cPanel AutoSSL)
+  RewriteRule ^\.well-known/ - [L,NC]
+
+  # Rewrite for invitation pages (SPA fallback for /invite/...)
+  RewriteRule ^invite/.*$ invite_entry.php [L]
+
+
+
+  # Hide .html extension
+  RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+  RewriteRule ^ /%1 [L,R=301]
+
+  # Mapping /foo to /foo.html if it exists
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^ %{REQUEST_URI}.html [L]
+  
+  # Handle Sub-directories (e.g. /admin/dashboard -> /admin/dashboard.html)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.*)$ $1.html [L]
+
+  # Fallback to 404.html for non-existent files
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ 404.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    # HTML, PHP, JSON, XML - Do NOT cache (Force revalidation)
+    <FilesMatch "\.(html|php|json|xml)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0, proxy-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # CSS, JS, Images, Fonts - Cache for 1 year (since they are hashed or static)
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>

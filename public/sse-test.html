@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE Test</title>
+</head>
+<body>
+    <h1>SSE Test Page</h1>
+    <div id="messages"></div>
+    <button onclick="startTest()">Start Test</button>
+    <button onclick="stopTest()">Stop Test</button>
+    
+    <script>
+        let eventSource = null;
+        
+        function startTest() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            const messages = document.getElementById('messages');
+            messages.innerHTML = '<p>Connecting to SSE...</p>';
+            
+            console.log('Starting SSE test...');
+            eventSource = new EventSource('/api/test-sse.php');
+            
+            eventSource.onopen = function() {
+                console.log('SSE connection opened');
+                messages.innerHTML += '<p style="color: green;">✓ Connection opened</p>';
+            };
+            
+            eventSource.onmessage = function(event) {
+                console.log('SSE message received:', event.data);
+                const data = JSON.parse(event.data);
+                messages.innerHTML += '<p style="color: blue;">Message: ' + data.message + ' (Timestamp: ' + data.timestamp + ')</p>';
+            };
+            
+            eventSource.onerror = function(error) {
+                console.error('SSE error:', error);
+                messages.innerHTML += '<p style="color: red;">✗ Connection error</p>';
+            };
+        }
+        
+        function stopTest() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+                console.log('SSE connection closed');
+                document.getElementById('messages').innerHTML += '<p style="color: orange;">Connection closed</p>';
+            }
+        }
+    </script>
+</body>
+</html>

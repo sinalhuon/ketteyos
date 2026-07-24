@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function SettingsPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -21,13 +23,13 @@ export default function SettingsPage() {
         setSuccess('');
 
         if (formData.newPassword !== formData.confirmPassword) {
-            setError('New passwords do not match');
+            setError(t('client.settings.passwordMismatch'));
             setLoading(false);
             return;
         }
 
         if (formData.newPassword.length < 6) {
-            setError('New password must be at least 6 characters');
+            setError(t('client.settings.passwordLength'));
             setLoading(false);
             return;
         }
@@ -45,17 +47,17 @@ export default function SettingsPage() {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccess('Password changed successfully!');
+                setSuccess(t('client.settings.success'));
                 setFormData({
                     currentPassword: '',
                     newPassword: '',
                     confirmPassword: '',
                 });
             } else {
-                setError(data.error || 'Failed to change password');
+                setError(data.error || t('client.settings.error'));
             }
         } catch (err) {
-            setError('Something went wrong');
+            setError(t('client.settings.error'));
         } finally {
             setLoading(false);
         }
@@ -67,16 +69,16 @@ export default function SettingsPage() {
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-8">
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-yellow-700">
-                            Account Settings
+                            {t('client.settings.title')}
                         </h1>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            Manage your account security
+                            {t('client.settings.subtitle')}
                         </p>
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
                         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                            Change Password
+                            {t('client.settings.changePassword')}
                         </h2>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -94,7 +96,7 @@ export default function SettingsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Current Password
+                                    {t('client.settings.currentPassword')}
                                 </label>
                                 <input
                                     type="password"
@@ -109,7 +111,7 @@ export default function SettingsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    New Password
+                                    {t('client.settings.newPassword')}
                                 </label>
                                 <input
                                     type="password"
@@ -125,7 +127,7 @@ export default function SettingsPage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Confirm New Password
+                                    {t('client.settings.confirmPassword')}
                                 </label>
                                 <input
                                     type="password"
@@ -145,14 +147,14 @@ export default function SettingsPage() {
                                     disabled={loading}
                                     className="flex-1 py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 transition-colors"
                                 >
-                                    {loading ? 'Changing...' : 'Change Password'}
+                                    {loading ? t('client.settings.changing') : t('client.settings.changePassword')}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => router.back()}
                                     className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors"
                                 >
-                                    Cancel
+                                    {t('client.settings.cancel')}
                                 </button>
                             </div>
                         </form>
