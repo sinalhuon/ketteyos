@@ -124,7 +124,6 @@ export function GuestManager({ eventId, eventSlug, guests, event }: GuestManager
                 setPhotoUrl('');
                 // Add to local state — prepend so newest appears first
                 setGuestList(prev => [result.guest, ...prev]);
-                router.refresh();
             } else {
                 toast.error(t('client.dashboard.error') + ': ' + (result.error || 'Unknown error'));
             }
@@ -141,7 +140,6 @@ export function GuestManager({ eventId, eventSlug, guests, event }: GuestManager
         try {
             await apiFetch(`guests.php?id=${guestId}`, { method: 'DELETE' });
             setGuestList(prev => prev.filter(g => g.id !== guestId));
-            router.refresh();
         } catch (e) {
             toast.error('Failed to delete guest');
         }
@@ -374,7 +372,6 @@ export function GuestManager({ eventId, eventSlug, guests, event }: GuestManager
                 setGuestList(prev => prev.map(g => g.id === editingGuest.id ? fullUpdatedGuest : g));
                 setEditingGuest(null);
                 setEditPhotoFile(null);
-                router.refresh();
             } else {
                 toast.error(t('client.dashboard.error'));
             }

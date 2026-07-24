@@ -250,7 +250,16 @@ export function EventEditor({ event, templates, globalMusic, guests, canUseMulti
     const { toast } = useToast();
     const { t } = useLanguage();
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'details' | 'design' | 'guests'>('details');
+    const [activeTab, setActiveTab] = useState<'details' | 'design' | 'guests'>(() => {
+        if (typeof window !== 'undefined') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam === 'design' || tabParam === 'guests') {
+                return tabParam;
+            }
+        }
+        return 'details';
+    });
     const [saving, setSaving] = useState(false);
     const [uploadingAlbum, setUploadingAlbum] = useState(false);
     const [uploadingStory, setUploadingStory] = useState(false);
