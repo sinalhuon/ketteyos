@@ -588,11 +588,11 @@ export function EventEditor({ event, templates, globalMusic, guests, canUseMulti
     const savedMovieCredits = Array.isArray(formData.templateConfig?.movieCredits)
         ? formData.templateConfig.movieCredits
             .map((credit: MovieCredit) => ({
-                role: credit?.role || 'Producer',
-                name: credit?.name || '',
-                nameEn: credit?.nameEn || '',
+                role: credit?.role ?? '',
+                name: credit?.name ?? '',
+                nameEn: credit?.nameEn ?? '',
             }))
-            .filter((credit: MovieCredit) => credit.role || credit.name || credit.nameEn)
+            .filter((credit: MovieCredit) => credit.role !== '' || credit.name !== '' || credit.nameEn !== '')
         : [];
     const movieCredits: MovieCredit[] = isMovieEvent && savedMovieCredits.length === 0
         ? DEFAULT_MOVIE_CREDITS
@@ -1357,7 +1357,7 @@ export function EventEditor({ event, templates, globalMusic, guests, canUseMulti
 
                                 <div className="space-y-3">
                                     {movieCredits.map((credit, index) => (
-                                        <div key={`${credit.role}-${index}`} className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-white/5">
+                                        <div key={index} className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-white/5">
                                             <div className={`grid grid-cols-1 gap-3 ${canUseMultipleLanguages && formData.enableSecondaryLanguage ? 'md:grid-cols-[180px_1fr_1fr_auto]' : 'md:grid-cols-[180px_1fr_auto]'}`}>
                                                 <div>
                                                     <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">Role</label>
