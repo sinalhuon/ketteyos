@@ -754,35 +754,10 @@ function og_normalize_khmer_unicode($text)
 
 function og_unicode_to_limon($text)
 {
-    $text = (string) $text;
+    $text = og_normalize_khmer_unicode((string) $text);
     if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
         return $text;
     }
-
-    // 1. Try official Node.js khmer-unicode-converter + khmer-normalizer (by Seanghay) if available
-    if (function_exists('exec')) {
-        $nodePath = dirname(__DIR__) . '/node_modules/khmer-unicode-converter';
-        if (is_dir($nodePath)) {
-            $cmd = 'PATH=$PATH:/usr/local/bin:/usr/bin node -e ' . escapeshellarg('
-                try {
-                    const { limon } = require("khmer-unicode-converter");
-                    const { khnormal } = require("khmer-normalizer");
-                    const input = process.argv[1];
-                    console.log(limon(khnormal(input, "km")));
-                } catch(e) {}
-            ') . ' ' . escapeshellarg($text) . ' 2>/dev/null';
-
-            $output = [];
-            $code = 0;
-            @exec($cmd, $output, $code);
-            if ($code === 0 && !empty($output[0])) {
-                return trim($output[0]);
-            }
-        }
-    }
-
-    // 2. Pure PHP fallback
-    $text = og_normalize_khmer_unicode($text);
 
     $consMap = [
         'ក' => 'k',
