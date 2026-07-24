@@ -753,30 +753,30 @@ function og_unicode_to_limon($text)
     ];
 
     $coengMap = [
-        "\xE1\x9F\x92\xE1\x9E\x80" => 'k',
-        "\xE1\x9F\x92\xE1\x9E\x81" => 'K',
-        "\xE1\x9F\x92\xE1\x9E\x82" => 'c',
-        "\xE1\x9F\x92\xE1\x9E\x83" => 'C',
-        "\xE1\x9F\x92\xE1\x9E\x84" => 'g',
-        "\xE1\x9F\x92\xE1\x9E\x85" => 'j',
-        "\xE1\x9F\x92\xE1\x9E\x86" => 'J',
-        "\xE1\x9F\x92\xE1\x9E\x87" => 'q',
-        "\xE1\x9F\x92\xE1\x9E\x88" => 'Q',
-        "\xE1\x9F\x92\xE1\x9E\x89" => 'j',
-        "\xE1\x9F\x92\xE1\x9E\x8F" => 't',
-        "\xE1\x9F\x92\xE1\x9E\x90" => 'T',
-        "\xE1\x9F\x92\xE1\x9E\x91" => 'd',
-        "\xE1\x9F\x92\xE1\x9E\x92" => 'p',
-        "\xE1\x9F\x92\xE1\x9E\x93" => 'n',
-        "\xE1\x9F\x92\xE1\x9E\x94" => 'b',
-        "\xE1\x9F\x92\xE1\x9E\x95" => 'P',
-        "\xE1\x9F\x92\xE1\x9E\x98" => 'm',
-        "\xE1\x9F\x92\xE1\x9E\x99" => 'y',
-        "\xE1\x9F\x92\xE1\x9E\x9A" => 'R',
-        "\xE1\x9F\x92\xE1\x9E\x9B" => 'l',
-        "\xE1\x9F\x92\xE1\x9E\x9C" => 'v',
-        "\xE1\x9F\x92\xE1\x9E\x9F" => 's',
-        "\xE1\x9F\x92\xE1\x9E\xA0" => 'h',
+        "\xE1\x9F\x92\xE1\x9E\x80" => "\xA1", // ្ក
+        "\xE1\x9F\x92\xE1\x9E\x81" => "\xA2", // ្ខ
+        "\xE1\x9F\x92\xE1\x9E\x82" => "\xA3", // ្គ
+        "\xE1\x9F\x92\xE1\x9E\x83" => "\xA4", // ្ឃ
+        "\xE1\x9F\x92\xE1\x9E\x84" => "\xA5", // ្ង
+        "\xE1\x9F\x92\xE1\x9E\x85" => "\xA6", // ្ច
+        "\xE1\x9F\x92\xE1\x9E\x86" => "\xA7", // ្ឆ
+        "\xE1\x9F\x92\xE1\x9E\x87" => 'q',    // ្ជ
+        "\xE1\x9F\x92\xE1\x9E\x88" => 'Q',    // ្ឈ
+        "\xE1\x9F\x92\xE1\x9E\x89" => 'j',    // ្ញ
+        "\xE1\x9F\x92\xE1\x9E\x8F" => "\xFE", // ្ត (þ)
+        "\xE1\x9F\x92\xE1\x9E\x90" => 'T',    // ្ថ
+        "\xE1\x9F\x92\xE1\x9E\x91" => 'd',    // ្ទ
+        "\xE1\x9F\x92\xE1\x9E\x92" => 'p',    // ្ធ
+        "\xE1\x9F\x92\xE1\x9E\x93" => 'n',    // ្ន
+        "\xE1\x9F\x92\xE1\x9E\x94" => 'b',    // ្ប
+        "\xE1\x9F\x92\xE1\x9E\x95" => 'P',    // ្ផ
+        "\xE1\x9F\x92\xE1\x9E\x98" => 'm',    // ្ម
+        "\xE1\x9F\x92\xE1\x9E\x99" => 'y',    // ្យ
+        "\xE1\x9F\x92\xE1\x9E\x9A" => "\xAE", // ្រ (®)
+        "\xE1\x9F\x92\xE1\x9E\x9B" => 'l',    // ្ល
+        "\xE1\x9F\x92\xE1\x9E\x9C" => 'v',    // ្វ
+        "\xE1\x9F\x92\xE1\x9E\x9F" => 's',    // ្ស
+        "\xE1\x9F\x92\xE1\x9E\xA0" => 'h',    // ្ហ
     ];
 
     $vowelMap = [
@@ -821,7 +821,7 @@ function og_unicode_to_limon($text)
             preg_match_all('/\x{17D2}[\x{1780}-\x{17B3}]/u', $subscripts, $subMatches);
             foreach ($subMatches[0] as $coeng) {
                 if ($coeng === "\xE1\x9F\x92\xE1\x9E\x9A") {
-                    $preRo = 'R';
+                    $preRo = "\xAE";
                 } else {
                     $postCoengs .= $coengMap[$coeng] ?? '';
                 }
@@ -1237,7 +1237,7 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
         $pillH = (int) round($fontSize * 2.8);
         $pillX = (int) round($centerX - ($pillW / 2));
         // Move pill lower — sit in the dark space under the guest photo circle
-        $pillY = (int) round($centerY + ($diameter / 2) + 14);
+        $pillY = (int) round($centerY + ($diameter / 2) + 30);
 
         $pillBg = imagecolorallocatealpha($canvas, 12, 12, 16, 45); // Glass dark pill
         $textWhite = imagecolorallocate($canvas, 255, 255, 255);
