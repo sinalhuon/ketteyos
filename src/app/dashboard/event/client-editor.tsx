@@ -592,7 +592,6 @@ export function EventEditor({ event, templates, globalMusic, guests, canUseMulti
                 name: credit?.name ?? '',
                 nameEn: credit?.nameEn ?? '',
             }))
-            .filter((credit: MovieCredit) => credit.role !== '' || credit.name !== '' || credit.nameEn !== '')
         : [];
     const movieCredits: MovieCredit[] = isMovieEvent && savedMovieCredits.length === 0
         ? DEFAULT_MOVIE_CREDITS
