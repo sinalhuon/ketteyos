@@ -849,7 +849,7 @@ function og_unicode_to_limon($text)
             $signLimon = $signMap[$signs] ?? '';
         }
 
-        return $leftVowel . $preRo . $baseLimon . $postCoengs . $rightVowel . $signLimon;
+        return $leftVowel . $preRo . $baseLimon . $rightVowel . $signLimon . $postCoengs;
     }, $text);
 }
 
