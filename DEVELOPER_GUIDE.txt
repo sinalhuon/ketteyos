@@ -1,0 +1,84 @@
+========================================================================
+             KETTEYOS DIGITAL INVITATIONS - DEVELOPER SETUP GUIDE
+========================================================================
+
+Repository: https://github.com/sinalhuon/ketteyos
+
+------------------------------------------------------------------------
+1. PREREQUISITES
+------------------------------------------------------------------------
+- Node.js: v18.0.0 or higher
+- npm: v9.0.0 or higher
+- PHP: v8.0 or higher (with PDO MySQL / SQLite enabled)
+- MySQL / MariaDB (or SQLite for local backend development)
+- Git
+
+------------------------------------------------------------------------
+2. GETTING STARTED (FIRST TIME SETUP)
+------------------------------------------------------------------------
+
+Step 2.1: Clone the repository
+   $ git clone https://github.com/sinalhuon/ketteyos.git
+   $ cd ketteyos
+
+Step 2.2: Install Node.js Dependencies
+   $ npm install
+
+Step 2.3: Environment Configuration (.env.local)
+   Create a file named `.env.local` in the project root directory with:
+
+   NEXT_PUBLIC_API_URL=http://localhost:8000/api
+
+   (For production deployment, set NEXT_PUBLIC_API_URL to your live domain's /api endpoint)
+
+Step 2.4: Database Setup
+   - Import the database schema from `public/db_schema.sql` into your local MySQL database.
+   - Update `public/api/db.php` with your local database credentials ($db_host, $db_name, $db_user, $db_pass).
+
+------------------------------------------------------------------------
+3. RUNNING THE DEVELOPMENT ENVIRONMENT
+------------------------------------------------------------------------
+
+You need to run TWO servers simultaneously during development:
+
+1. PHP Backend Server (Port 8000):
+   $ php -S localhost:8000 -t public
+
+2. Next.js Frontend Development Server (Port 3000):
+   $ npm run dev
+
+Open http://localhost:3000 in your web browser.
+
+------------------------------------------------------------------------
+4. PROJECT ARCHITECTURE OVERVIEW
+------------------------------------------------------------------------
+
+- /src/app/                    Next.js App Router pages (Landing, Admin, Client Dashboard, Invite preview pages)
+- /src/components/Invitation/  Invitation template renderers & components
+- /src/components/Invitation/layouts/   Individual template layouts (e.g. MovieCeremonyLayout, BlueArchLayout, etc.)
+- /src/contexts/               React Contexts (AuthContext for user state, AdminSettingsContext, LanguageContext)
+- /src/lib/translations/      Khmer (kh.ts) and English (en.ts) dictionary translations
+- /public/api/                 PHP REST API endpoints (Auth, Profile, Events, Guests, Uploads, OpenGraph thumbnail generator)
+- /public/db_schema.sql        Latest MySQL database schema & tables
+
+------------------------------------------------------------------------
+5. COMMON DEVELOPER WORKFLOWS & COMMANDS
+------------------------------------------------------------------------
+
+- Fetching Latest Changes from GitHub:
+  $ git pull origin main
+
+- Creating a Build / Testing Production Build:
+  $ npm run build
+
+- Packaging Code for Production Hosting (creates deployment.zip):
+  $ npm run build && rm -f deployment.zip && (cd out && zip -r ../deployment.zip . -x "uploads/*" -x "db_schema.sql")
+
+------------------------------------------------------------------------
+6. USEFUL NOTES & CONTROLS
+------------------------------------------------------------------------
+- Authentication: Session & JWT token tokens are managed in AuthContext and synced via local storage + session cookie.
+- OpenGraph Meta & Thumbnail Generator: Dynamically handled by public/api/og_image.php and public/api/og_helpers.php.
+- Languages: Supports Khmer ('kh') and English ('en') with instant language toggle.
+
+========================================================================
