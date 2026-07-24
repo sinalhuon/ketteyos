@@ -1066,7 +1066,7 @@ function og_fit_text($text, $size, $font, $maxWidth)
 
 function og_draw_centered_text($image, $text, $size, $y, $color, $font, $maxWidth)
 {
-    $text = og_normalize_text(trim($text));
+    $text = og_normalize_text(trim($text), $font);
     if ($text === '') {
         return;
     }
