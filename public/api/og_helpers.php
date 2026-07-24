@@ -846,9 +846,9 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     $diameter = (int) round(min($rect['w'], $rect['h']) * 0.23);
     $diameter = max(86, min((int) round(min($canvasW, $canvasH) * 0.32), $diameter));
     
-    // Position guest photo higher vertically (35% down instead of 42%)
+    // Position guest photo slightly lower (38% down)
     $centerX = (int) round($rect['x'] + ($rect['w'] * 0.72));
-    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.35));
+    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.38));
 
     $shadow = imagecolorallocatealpha($canvas, 0, 0, 0, 54);
     $outer = imagecolorallocatealpha($canvas, 255, 255, 255, 28);
@@ -863,17 +863,18 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     og_copy_circle_image($canvas, $avatar, $centerX, $centerY, $diameter);
     imagedestroy($avatar);
 
-    // Draw guest name below guest photo, centered under the photo
+    // Draw guest name inside pill container centered under guest photo
     $guestName = is_array($guest) ? ($guest['name'] ?? $guest['guestName'] ?? '') : '';
     if ($guestName !== '') {
         $font = og_font_path('body');
-        $fontSize = (int) round($diameter * 0.16);
-        $fontSize = max(11, min(20, $fontSize));
+        $fontSize = (int) round($diameter * 0.17);
+        $fontSize = max(12, min(22, $fontSize));
 
-        $pillW = (int) round($diameter * 1.55);
-        $pillH = (int) round($fontSize * 2.3);
+        // Enlarge pill container so text fits comfortably inside
+        $pillW = (int) round($diameter * 1.85);
+        $pillH = (int) round($fontSize * 2.6);
         $pillX = (int) round($centerX - ($pillW / 2));
-        $pillY = (int) round($centerY + ($diameter / 2) + 12);
+        $pillY = (int) round($centerY + ($diameter / 2) + 16);
 
         $pillBg = imagecolorallocatealpha($canvas, 12, 12, 16, 45); // Glass dark pill
         $pillBorder = imagecolorallocatealpha($canvas, 255, 255, 255, 60);
@@ -882,12 +883,12 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
         // Draw pill background & border
         og_rounded_rect($canvas, $pillX, $pillY, $pillW, $pillH, (int) ($pillH / 2), $pillBg);
         
-        // Draw text inside pill centered horizontally under the photo center X
-        $fittedText = og_fit_text($guestName, $fontSize, $font, $pillW - 16);
+        // Draw text inside pill perfectly centered vertically and horizontally inside the box
+        $fittedText = og_fit_text($guestName, $fontSize, $font, $pillW - 20);
         if ($fittedText !== '') {
             $textWidth = og_text_width($fittedText, $fontSize, $font);
             $textX = (int) round($centerX - ($textWidth / 2));
-            $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 2;
+            $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 3;
             if ($font !== '') {
                 imagettftext($canvas, $fontSize, 0, $textX, $textY, $textWhite, $font, $fittedText);
             } else {
