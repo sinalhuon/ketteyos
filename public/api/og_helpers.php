@@ -714,6 +714,7 @@ function og_font_path($kind = 'body')
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
         ]
         : [
+            $publicRoot . '/assets/fonts/lmnf2.ttf',
             $publicRoot . '/assets/fonts/lmnf1.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-SemiBold.ttf',
