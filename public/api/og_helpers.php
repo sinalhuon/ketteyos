@@ -729,6 +729,119 @@ function og_font_path($kind = 'body')
     return '';
 }
 
+/**
+ * Locate ImageMagick 'convert' binary. Caches result.
+ */
+function og_find_convert_binary()
+{
+    static $bin = null;
+    if ($bin !== null) {
+        return $bin;
+    }
+
+    // Common paths on cPanel / shared hosting
+    $candidates = [
+        '/usr/bin/convert',
+        '/usr/local/bin/convert',
+        '/opt/cpanel/3rdparty/bin/convert',
+        '/usr/bin/magick',  // ImageMagick 7
+    ];
+
+    foreach ($candidates as $path) {
+        if (is_file($path) && is_executable($path)) {
+            $bin = $path;
+            return $bin;
+        }
+    }
+
+    // Try which / command -v
+    if (function_exists('exec')) {
+        $out = [];
+        @exec('which convert 2>/dev/null', $out);
+        if (!empty($out[0]) && is_file(trim($out[0]))) {
+            $bin = trim($out[0]);
+            return $bin;
+        }
+    }
+
+    $bin = '';
+    return $bin;
+}
+
+/**
+ * Render text to a GD image resource using ImageMagick CLI for proper
+ * complex-script shaping (Khmer, Thai, Arabic, Devanagari, etc.).
+ *
+ * Returns a GD image resource with transparent background, or null on failure.
+ *
+ * @param string $text      The text to render
+ * @param int    $fontSize  Font size in points
+ * @param string $fontPath  Absolute path to TTF font
+ * @param string $hexColor  Text color as hex e.g. '#FFFFFF'
+ * @param int    $maxWidth  Maximum width in pixels (0 = no limit)
+ * @return resource|GdImage|null
+ */
+function og_render_text_as_image($text, $fontSize, $fontPath, $hexColor = '#FFFFFF', $maxWidth = 0)
+{
+    $convert = og_find_convert_binary();
+    if ($convert === '' || !function_exists('exec')) {
+        return null;
+    }
+
+    $text = trim($text);
+    if ($text === '') {
+        return null;
+    }
+
+    // Create a temp file for the output
+    $tmpDir = sys_get_temp_dir();
+    $tmpFile = tempnam($tmpDir, 'og_text_') . '.png';
+
+    // Build the ImageMagick command
+    // Use -background none for transparency, -fill for text color
+    $escapedText = escapeshellarg($text);
+    $escapedFont = escapeshellarg($fontPath);
+    $escapedColor = escapeshellarg($hexColor);
+    $escapedOut = escapeshellarg($tmpFile);
+
+    // ImageMagick 'label:' uses FreeType2 which includes HarfBuzz shaping
+    $cmd = $convert
+        . ' -background none'
+        . ' -fill ' . $escapedColor
+        . ' -font ' . $escapedFont
+        . ' -pointsize ' . (int) $fontSize;
+
+    if ($maxWidth > 0) {
+        $cmd .= ' -size ' . (int) $maxWidth . 'x';
+    }
+
+    $cmd .= ' label:' . $escapedText
+        . ' -trim +repage'
+        . ' ' . $escapedOut
+        . ' 2>/dev/null';
+
+    $output = [];
+    $returnCode = 0;
+    @exec($cmd, $output, $returnCode);
+
+    if ($returnCode !== 0 || !is_file($tmpFile)) {
+        @unlink($tmpFile);
+        return null;
+    }
+
+    $img = @imagecreatefrompng($tmpFile);
+    @unlink($tmpFile);
+
+    if (!$img) {
+        return null;
+    }
+
+    imagealphablending($img, true);
+    imagesavealpha($img, true);
+
+    return $img;
+}
+
 function og_normalize_text($text)
 {
     $text = (string) $text;
@@ -770,13 +883,61 @@ function og_fit_text($text, $size, $font, $maxWidth)
 
 function og_draw_centered_text($image, $text, $size, $y, $color, $font, $maxWidth)
 {
+    $text = og_normalize_text(trim($text));
+    if ($text === '') {
+        return;
+    }
+
+    $imgW = imagesx($image);
+
+    // Try ImageMagick for proper complex script shaping
+    if ($font !== '') {
+        // Extract RGB from the GD color index to pass as hex to ImageMagick
+        $r = ($color >> 16) & 0xFF;
+        $g = ($color >> 8) & 0xFF;
+        $b = $color & 0xFF;
+        $hex = sprintf('#%02X%02X%02X', $r, $g, $b);
+
+        $textImg = og_render_text_as_image($text, $size, $font, $hex, $maxWidth);
+        if ($textImg) {
+            $txtW = imagesx($textImg);
+            $txtH = imagesy($textImg);
+
+            // Scale down if needed
+            if ($txtW > $maxWidth) {
+                $scale = $maxWidth / max(1, $txtW);
+                $newW = max(1, (int) round($txtW * $scale));
+                $newH = max(1, (int) round($txtH * $scale));
+                $scaled = imagecreatetruecolor($newW, $newH);
+                imagealphablending($scaled, false);
+                imagesavealpha($scaled, true);
+                $trans = imagecolorallocatealpha($scaled, 0, 0, 0, 127);
+                imagefill($scaled, 0, 0, $trans);
+                imagecopyresampled($scaled, $textImg, 0, 0, 0, 0, $newW, $newH, $txtW, $txtH);
+                imagedestroy($textImg);
+                $textImg = $scaled;
+                $txtW = $newW;
+                $txtH = $newH;
+            }
+
+            $dstX = (int) round(($imgW - $txtW) / 2);
+            // $y is baseline in GD terms; for the composited image, shift up by text height
+            $dstY = $y - $txtH;
+            imagealphablending($image, true);
+            imagecopy($image, $textImg, $dstX, max(0, $dstY), 0, 0, $txtW, $txtH);
+            imagedestroy($textImg);
+            return;
+        }
+    }
+
+    // Fallback: GD imagettftext
     $text = og_fit_text($text, $size, $font, $maxWidth);
     if ($text === '') {
         return;
     }
 
     $width = og_text_width($text, $size, $font);
-    $x = (int) round((imagesx($image) - $width) / 2);
+    $x = (int) round(($imgW - $width) / 2);
     if ($font !== '') {
         imagettftext($image, $size, 0, $x, $y, $color, $font, $text);
     } else {
@@ -872,27 +1033,68 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
 
         // Enlarge pill container so text fits comfortably inside
         $pillW = (int) round($diameter * 1.85);
-        $pillH = (int) round($fontSize * 2.6);
+        $pillH = (int) round($fontSize * 2.8);
         $pillX = (int) round($centerX - ($pillW / 2));
-        $pillY = (int) round($centerY + ($diameter / 2) + 16);
+        // Move pill lower — add more gap below the photo circle
+        $pillY = (int) round($centerY + ($diameter / 2) + 28);
 
         $pillBg = imagecolorallocatealpha($canvas, 12, 12, 16, 45); // Glass dark pill
-        $pillBorder = imagecolorallocatealpha($canvas, 255, 255, 255, 60);
         $textWhite = imagecolorallocate($canvas, 255, 255, 255);
 
-        // Draw pill background & border
+        // Draw pill background
         og_rounded_rect($canvas, $pillX, $pillY, $pillW, $pillH, (int) ($pillH / 2), $pillBg);
-        
-        // Draw text inside pill perfectly centered vertically and horizontally inside the box
-        $fittedText = og_fit_text($guestName, $fontSize, $font, $pillW - 20);
-        if ($fittedText !== '') {
-            $textWidth = og_text_width($fittedText, $fontSize, $font);
-            $textX = (int) round($centerX - ($textWidth / 2));
-            $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 3;
-            if ($font !== '') {
-                imagettftext($canvas, $fontSize, 0, $textX, $textY, $textWhite, $font, $fittedText);
-            } else {
-                imagestring($canvas, 5, $textX, $textY - $fontSize, $fittedText, $textWhite);
+
+        $normalizedName = og_normalize_text($guestName);
+
+        // ---- Try ImageMagick for proper Khmer/complex script shaping ----
+        $textRendered = false;
+        if ($font !== '') {
+            $textImg = og_render_text_as_image($normalizedName, $fontSize, $font, '#FFFFFF', $pillW - 20);
+            if ($textImg) {
+                $txtW = imagesx($textImg);
+                $txtH = imagesy($textImg);
+
+                // If the rendered text is wider than the pill interior, scale it down
+                $availW = $pillW - 20;
+                $availH = $pillH - 6;
+                if ($txtW > $availW || $txtH > $availH) {
+                    $scale = min($availW / max(1, $txtW), $availH / max(1, $txtH));
+                    $newW = max(1, (int) round($txtW * $scale));
+                    $newH = max(1, (int) round($txtH * $scale));
+                    $scaled = imagecreatetruecolor($newW, $newH);
+                    imagealphablending($scaled, false);
+                    imagesavealpha($scaled, true);
+                    $trans = imagecolorallocatealpha($scaled, 0, 0, 0, 127);
+                    imagefill($scaled, 0, 0, $trans);
+                    imagecopyresampled($scaled, $textImg, 0, 0, 0, 0, $newW, $newH, $txtW, $txtH);
+                    imagedestroy($textImg);
+                    $textImg = $scaled;
+                    $txtW = $newW;
+                    $txtH = $newH;
+                }
+
+                // Center the text image inside the pill
+                $dstX = $pillX + (int) round(($pillW - $txtW) / 2);
+                $dstY = $pillY + (int) round(($pillH - $txtH) / 2);
+                imagealphablending($canvas, true);
+                imagecopy($canvas, $textImg, $dstX, $dstY, 0, 0, $txtW, $txtH);
+                imagedestroy($textImg);
+                $textRendered = true;
+            }
+        }
+
+        // ---- Fallback: GD imagettftext (may render broken Khmer) ----
+        if (!$textRendered) {
+            $fittedText = og_fit_text($normalizedName, $fontSize, $font, $pillW - 20);
+            if ($fittedText !== '') {
+                $textWidth = og_text_width($fittedText, $fontSize, $font);
+                $textX = (int) round($centerX - ($textWidth / 2));
+                $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 3;
+                if ($font !== '') {
+                    imagettftext($canvas, $fontSize, 0, $textX, $textY, $textWhite, $font, $fittedText);
+                } else {
+                    imagestring($canvas, 5, $textX, $textY - $fontSize, $fittedText, $textWhite);
+                }
             }
         }
     }
