@@ -708,14 +708,13 @@ function og_font_path($kind = 'body')
     $publicRoot = dirname(__DIR__);
     $candidates = $kind === 'heading'
         ? [
-            $publicRoot . '/assets/fonts/lmnf1.ttf',
+            $publicRoot . '/assets/fonts/lmnf2.ttf',
             $publicRoot . '/assets/fonts/Moulpali-Regular.ttf',
             $publicRoot . '/assets/fonts/Moul-Regular.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
         ]
         : [
             $publicRoot . '/assets/fonts/lmnf2.ttf',
-            $publicRoot . '/assets/fonts/lmnf1.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-SemiBold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Regular.ttf',
@@ -744,13 +743,39 @@ function og_unicode_to_limon($text)
     }
 
     $consMap = [
-        'ក'=>'k', 'ខ'=>'K', 'គ'=>'c', 'ឃ'=>'C', 'ង'=>'g',
-        'ច'=>'c', 'ឆ'=>'C', 'ជ'=>'q', 'ឈ'=>'Q', 'ញ'=>'j',
-        'ដ'=>'d', 'ឋ'=>'D', 'ឌ'=>'z', 'ឍ'=>'Z', 'ណ'=>'n',
-        'ត'=>'t', 'ថ'=>'T', 'ទ'=>'d', 'ធ'=>'p', 'ន'=>'n',
-        'ប'=>'B', 'ផ'=>'P', 'ព'=>'b', 'ភ'=>'p', 'ម'=>'m',
-        'យ'=>'y', 'រ'=>'r', 'ល'=>'l', 'វ'=>'v', 'ស'=>'s',
-        'ហ'=>'h', 'ឡ'=>'L', 'អ'=>'a'
+        'ក' => 'k',
+        'ខ' => 'K',
+        'គ' => 'c',
+        'ឃ' => 'C',
+        'ង' => 'g',
+        'ច' => 'c',
+        'ឆ' => 'C',
+        'ជ' => 'q',
+        'ឈ' => 'Q',
+        'ញ' => 'j',
+        'ដ' => 'd',
+        'ឋ' => 'D',
+        'ឌ' => 'z',
+        'ឍ' => 'Z',
+        'ណ' => 'n',
+        'ត' => 't',
+        'ថ' => 'T',
+        'ទ' => 'd',
+        'ធ' => 'p',
+        'ន' => 'n',
+        'ប' => 'B',
+        'ផ' => 'P',
+        'ព' => 'b',
+        'ភ' => 'p',
+        'ម' => 'm',
+        'យ' => 'y',
+        'រ' => 'r',
+        'ល' => 'l',
+        'វ' => 'v',
+        'ស' => 's',
+        'ហ' => 'h',
+        'ឡ' => 'L',
+        'អ' => 'a'
     ];
 
     $coengMap = [
@@ -1032,7 +1057,7 @@ function og_normalize_text($text, $font = '')
         }
     }
 
-    if ($font !== '' && strpos(basename($font), 'lmnf1') !== false) {
+    if ($font !== '' && strpos(basename($font), 'lmnf2') !== false) {
         return og_unicode_to_limon($text);
     }
 
@@ -1189,11 +1214,11 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     $canvasW = imagesx($canvas);
     $canvasH = imagesy($canvas);
     $rect = is_array($posterRect) ? $posterRect : ['x' => 0, 'y' => 0, 'w' => $canvasW, 'h' => $canvasH];
-    
+
     // Scale guest photo to be smaller (approx 23% of container instead of 31%)
     $diameter = (int) round(min($rect['w'], $rect['h']) * 0.23);
     $diameter = max(86, min((int) round(min($canvasW, $canvasH) * 0.32), $diameter));
-    
+
     // Position guest photo (35% down)
     $centerX = (int) round($rect['x'] + ($rect['w'] * 0.72));
     $centerY = (int) round($rect['y'] + ($rect['h'] * 0.35));
