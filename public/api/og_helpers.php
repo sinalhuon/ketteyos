@@ -842,17 +842,70 @@ function og_render_text_as_image($text, $fontSize, $fontPath, $hexColor = '#FFFF
     return $img;
 }
 
+/**
+ * Shape Khmer Unicode text for engines (like PHP GD / FreeType) that lack HarfBuzz complex script layout.
+ * Reorders left-side vowels (េ, ែ, ៃ, ោ, ៅ) and Coeng Ro (្ + រ) to visual pre-base positions.
+ */
+function og_shape_khmer_text($text)
+{
+    $text = (string) $text;
+    if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
+        return $text;
+    }
+
+    $pattern = '/([\x{1780}-\x{17B3}])((\x{17D2}[\x{1780}-\x{17B3}])*)([\x{17B6}-\x{17C5}]?)([\x{17C6}-\x{17D3}]*)/u';
+
+    return preg_replace_callback($pattern, function ($m) {
+        $base = $m[1];
+        $subscripts = $m[2];
+        $vowel = $m[4];
+        $signs = $m[5];
+
+        $pre_coeng_ro = '';
+        $post_coengs = '';
+
+        if ($subscripts !== '') {
+            preg_match_all('/\x{17D2}[\x{1780}-\x{17B3}]/u', $subscripts, $subMatches);
+            foreach ($subMatches[0] as $coeng) {
+                if ($coeng === "\xE1\x9F\x92\xE1\x9E\x9A") {
+                    $pre_coeng_ro .= $coeng;
+                } else {
+                    $post_coengs .= $coeng;
+                }
+            }
+        }
+
+        $left_vowel = '';
+        $right_vowel = '';
+        if ($vowel !== '') {
+            if ($vowel === "\xE1\x9F\x81" || $vowel === "\xE1\x9F\x82" || $vowel === "\xE1\x9F\x83") {
+                $left_vowel = $vowel;
+            } elseif ($vowel === "\xE1\x9F\x84") { // ោ (17C4) = េ (17C1) + ា (17B6)
+                $left_vowel = "\xE1\x9F\x81";
+                $right_vowel = "\xE1\x9F\xB6";
+            } elseif ($vowel === "\xE1\x9F\x85") { // ៅ (17C5) = េ (17C1) + ៅ (17C5)
+                $left_vowel = "\xE1\x9F\x81";
+                $right_vowel = "\xE1\x9F\x85";
+            } else {
+                $right_vowel = $vowel;
+            }
+        }
+
+        return $left_vowel . $pre_coeng_ro . $base . $post_coengs . $right_vowel . $signs;
+    }, $text);
+}
+
 function og_normalize_text($text)
 {
     $text = (string) $text;
     if (class_exists('Normalizer')) {
         $normalized = Normalizer::normalize($text, Normalizer::FORM_C);
         if (is_string($normalized)) {
-            return $normalized;
+            $text = $normalized;
         }
     }
 
-    return $text;
+    return og_shape_khmer_text($text);
 }
 
 function og_text_width($text, $size, $font)
@@ -1007,9 +1060,9 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     $diameter = (int) round(min($rect['w'], $rect['h']) * 0.23);
     $diameter = max(86, min((int) round(min($canvasW, $canvasH) * 0.32), $diameter));
     
-    // Position guest photo slightly lower (38% down)
+    // Position guest photo (35% down)
     $centerX = (int) round($rect['x'] + ($rect['w'] * 0.72));
-    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.38));
+    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.35));
 
     $shadow = imagecolorallocatealpha($canvas, 0, 0, 0, 54);
     $outer = imagecolorallocatealpha($canvas, 255, 255, 255, 28);
@@ -1035,8 +1088,8 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
         $pillW = (int) round($diameter * 1.85);
         $pillH = (int) round($fontSize * 2.8);
         $pillX = (int) round($centerX - ($pillW / 2));
-        // Move pill lower — add more gap below the photo circle
-        $pillY = (int) round($centerY + ($diameter / 2) + 28);
+        // Move pill lower — sit in the dark space under the guest photo circle
+        $pillY = (int) round($centerY + ($diameter / 2) + 14);
 
         $pillBg = imagecolorallocatealpha($canvas, 12, 12, 16, 45); // Glass dark pill
         $textWhite = imagecolorallocate($canvas, 255, 255, 255);
