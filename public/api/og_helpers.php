@@ -754,10 +754,35 @@ function og_normalize_khmer_unicode($text)
 
 function og_unicode_to_limon($text)
 {
-    $text = og_normalize_khmer_unicode((string) $text);
+    $text = (string) $text;
     if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
         return $text;
     }
+
+    // 1. Try official Node.js khmer-unicode-converter + khmer-normalizer (by Seanghay) if available
+    if (function_exists('exec')) {
+        $nodePath = dirname(__DIR__) . '/node_modules/khmer-unicode-converter';
+        if (is_dir($nodePath)) {
+            $cmd = 'PATH=$PATH:/usr/local/bin:/usr/bin node -e ' . escapeshellarg('
+                try {
+                    const { limon } = require("khmer-unicode-converter");
+                    const { khnormal } = require("khmer-normalizer");
+                    const input = process.argv[1];
+                    console.log(limon(khnormal(input, "km")));
+                } catch(e) {}
+            ') . ' ' . escapeshellarg($text) . ' 2>/dev/null';
+
+            $output = [];
+            $code = 0;
+            @exec($cmd, $output, $code);
+            if ($code === 0 && !empty($output[0])) {
+                return trim($output[0]);
+            }
+        }
+    }
+
+    // 2. Pure PHP fallback
+    $text = og_normalize_khmer_unicode($text);
 
     $consMap = [
         'ក' => 'k',
@@ -803,15 +828,15 @@ function og_unicode_to_limon($text)
         "\xE1\x9F\x92\xE1\x9E\x84" => "\xA5", // ្ង
         "\xE1\x9F\x92\xE1\x9E\x85" => "\xA6", // ្ច
         "\xE1\x9F\x92\xE1\x9E\x86" => "\xA7", // ្ឆ
-        "\xE1\x9F\x92\xE1\x9E\x87" => 'q',    // ្ជ
+        "\xE1\x9F\x92\xE1\x9E\x87" => 'C',    // ្ជ
         "\xE1\x9F\x92\xE1\x9E\x88" => 'Q',    // ្ឈ
-        "\xE1\x9F\x92\xE1\x9E\x89" => 'j',    // ្ញ
+        "\xE1\x9F\x92\xE1\x9E\x89" => 'J',    // ្ញ
         "\xE1\x9F\x92\xE1\x9E\x8F" => "\xFE", // ្ត (þ)
         "\xE1\x9F\x92\xE1\x9E\x90" => 'T',    // ្ថ
         "\xE1\x9F\x92\xE1\x9E\x91" => 'd',    // ្ទ
         "\xE1\x9F\x92\xE1\x9E\x92" => 'p',    // ្ធ
         "\xE1\x9F\x92\xE1\x9E\x93" => 'n',    // ្ន
-        "\xE1\x9F\x92\xE1\x9E\x94" => 'b',    // ្ប
+        "\xE1\x9F\x92\xE1\x9E\x94" => ',',    // ្ប (,)
         "\xE1\x9F\x92\xE1\x9E\x95" => 'P',    // ្ផ
         "\xE1\x9F\x92\xE1\x9E\x98" => 'm',    // ្ម
         "\xE1\x9F\x92\xE1\x9E\x99" => 'y',    // ្យ
