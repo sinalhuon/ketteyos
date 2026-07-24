@@ -780,20 +780,20 @@ function og_unicode_to_limon($text)
     ];
 
     $vowelMap = [
-        "\xE1\x9F\xB6" => 'a',   // ា
-        "\xE1\x9F\xB7" => 'i',   // ិ
-        "\xE1\x9F\xB8" => 'I',   // ី
-        "\xE1\x9F\xB9" => 'y',   // ឹ
-        "\xE1\x9F\xBA" => 'Y',   // ឺ
-        "\xE1\x9F\xBB" => 'u',   // ុ
-        "\xE1\x9F\xBC" => 'U',   // ូ
-        "\xE1\x9F\xBD" => 'W',   // ួ
-        "\xE1\x9F\xBE" => 'eI',  // ើ
-        "\xE1\x9F\xBF" => 'eY',  // ឿ
-        "\xE1\x9F\x80" => 'ei',  // ៀ
-        "\xE1\x9F\x81" => 'e',   // េ
-        "\xE1\x9F\x82" => 'E',   // ែ
-        "\xE1\x9F\x83" => 'ai',  // ៃ
+        "\xE1\x9E\xB6" => 'a',   // ា U+17B6
+        "\xE1\x9E\xB7" => 'i',   // ិ U+17B7
+        "\xE1\x9E\xB8" => 'I',   // ី U+17B8
+        "\xE1\x9E\xB9" => 'y',   // ឹ U+17B9
+        "\xE1\x9E\xBA" => 'Y',   // ឺ U+17BA
+        "\xE1\x9E\xBB" => 'u',   // ុ U+17BB
+        "\xE1\x9E\xBC" => 'U',   // ូ U+17BC
+        "\xE1\x9E\xBD" => 'W',   // ួ U+17BD
+        "\xE1\x9E\xBE" => 'eI',  // ើ U+17BE
+        "\xE1\x9E\xBF" => 'eY',  // ឿ U+17BF
+        "\xE1\x9F\x80" => 'ei',  // ៀ U+17C0
+        "\xE1\x9F\x81" => 'e',   // េ U+17C1
+        "\xE1\x9F\x82" => 'E',   // ែ U+17C2
+        "\xE1\x9F\x83" => 'ai',  // ៃ U+17C3
     ];
 
     $signMap = [
