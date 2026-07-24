@@ -865,12 +865,14 @@ function og_shape_khmer_text($text)
         $post_coengs = '';
 
         if ($subscripts !== '') {
-            preg_match_all('/\x{17D2}[\x{1780}-\x{17B3}]/u', $subscripts, $subMatches);
-            foreach ($subMatches[0] as $coeng) {
-                if ($coeng === "\xE1\x9F\x92\xE1\x9E\x9A") {
-                    $pre_coeng_ro .= $coeng;
+            preg_match_all('/\x{17D2}([\x{1780}-\x{17B3}])/u', $subscripts, $subMatches);
+            foreach ($subMatches[1] as $subConsonant) {
+                // Coeng Ro (U+17D2 + U+179A = ្ + រ) -> pre-base Coeng Ro
+                if ($subConsonant === "\xE1\x9E\x9A") {
+                    $pre_coeng_ro .= "\xE1\x9F\x92\xE1\x9E\x9A";
                 } else {
-                    $post_coengs .= $coeng;
+                    // For other subscripts, pass the coeng consonant cleanly
+                    $post_coengs .= "\xE1\x9F\x92" . $subConsonant;
                 }
             }
         }
@@ -1046,9 +1048,12 @@ function og_guest_initial($guestName)
 
 function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterRect = null)
 {
+    $guestName = is_array($guest) ? ($guest['name'] ?? $guest['guestName'] ?? '') : '';
     $guestPhoto = og_guest_photo_url($guest);
     $avatar = $guestPhoto ? og_load_image_resource($guestPhoto, $baseUrl) : null;
-    if (!$avatar) {
+
+    // If both avatar and guest name are empty, nothing to draw
+    if (!$avatar && trim($guestName) === '') {
         return;
     }
 
@@ -1074,11 +1079,26 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     imagefilledellipse($canvas, $centerX, $centerY, $diameter + 14, $diameter + 14, $ring);
     imagefilledellipse($canvas, $centerX, $centerY, $diameter + 4, $diameter + 4, $inner);
 
-    og_copy_circle_image($canvas, $avatar, $centerX, $centerY, $diameter);
-    imagedestroy($avatar);
+    if ($avatar) {
+        og_copy_circle_image($canvas, $avatar, $centerX, $centerY, $diameter);
+        imagedestroy($avatar);
+    } else {
+        // Draw placeholder avatar with guest initial if no photo is available
+        $placeholderBg = imagecolorallocatealpha($canvas, 30, 32, 42, 20);
+        imagefilledellipse($canvas, $centerX, $centerY, $diameter, $diameter, $placeholderBg);
+        $initial = og_guest_initial($guestName);
+        $font = og_font_path('heading');
+        $textWhite = imagecolorallocate($canvas, 255, 255, 255);
+        $initialSize = (int) round($diameter * 0.38);
+        if ($font !== '') {
+            $bbox = imagettfbbox($initialSize, 0, $font, $initial);
+            $tw = abs($bbox[2] - $bbox[0]);
+            $th = abs($bbox[7] - $bbox[1]);
+            imagettftext($canvas, $initialSize, 0, (int) ($centerX - ($tw / 2)), (int) ($centerY + ($th / 3)), $textWhite, $font, $initial);
+        }
+    }
 
     // Draw guest name inside pill container centered under guest photo
-    $guestName = is_array($guest) ? ($guest['name'] ?? $guest['guestName'] ?? '') : '';
     if ($guestName !== '') {
         $font = og_font_path('body');
         $fontSize = (int) round($diameter * 0.17);
