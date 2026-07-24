@@ -708,11 +708,13 @@ function og_font_path($kind = 'body')
     $publicRoot = dirname(__DIR__);
     $candidates = $kind === 'heading'
         ? [
+            $publicRoot . '/assets/fonts/lmnf1.ttf',
             $publicRoot . '/assets/fonts/Moulpali-Regular.ttf',
             $publicRoot . '/assets/fonts/Moul-Regular.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
         ]
         : [
+            $publicRoot . '/assets/fonts/lmnf1.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-SemiBold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Regular.ttf',
@@ -727,6 +729,128 @@ function og_font_path($kind = 'body')
     }
 
     return '';
+}
+
+/**
+ * Convert Khmer Unicode string to Limon F1 Legacy ASCII string
+ * so PHP GD imagettftext renders Khmer text 100% perfectly without HarfBuzz.
+ */
+function og_unicode_to_limon($text)
+{
+    $text = (string) $text;
+    if ($text === '' || !preg_match('/[\x{1780}-\x{17D3}]/u', $text)) {
+        return $text;
+    }
+
+    $consMap = [
+        'ក'=>'k', 'ខ'=>'K', 'គ'=>'c', 'ឃ'=>'C', 'ង'=>'g',
+        'ច'=>'j', 'ឆ'=>'J', 'ជ'=>'q', 'ឈ'=>'Q', 'ញ'=>'j',
+        'ដ'=>'d', 'ឋ'=>'D', 'ឌ'=>'z', 'ឍ'=>'Z', 'ណ'=>'n',
+        'ត'=>'t', 'ថ'=>'T', 'ទ'=>'d', 'ធ'=>'p', 'ន'=>'n',
+        'ប'=>'b', 'ផ'=>'P', 'ព'=>'b', 'ភ'=>'p', 'ម'=>'m',
+        'យ'=>'y', 'រ'=>'r', 'ល'=>'l', 'វ'=>'v', 'ស'=>'s',
+        'ហ'=>'h', 'ឡ'=>'L', 'អ'=>'a'
+    ];
+
+    $coengMap = [
+        "\xE1\x9F\x92\xE1\x9E\x80" => 'k',
+        "\xE1\x9F\x92\xE1\x9E\x81" => 'K',
+        "\xE1\x9F\x92\xE1\x9E\x82" => 'c',
+        "\xE1\x9F\x92\xE1\x9E\x83" => 'C',
+        "\xE1\x9F\x92\xE1\x9E\x84" => 'g',
+        "\xE1\x9F\x92\xE1\x9E\x85" => 'j',
+        "\xE1\x9F\x92\xE1\x9E\x86" => 'J',
+        "\xE1\x9F\x92\xE1\x9E\x87" => 'q',
+        "\xE1\x9F\x92\xE1\x9E\x88" => 'Q',
+        "\xE1\x9F\x92\xE1\x9E\x89" => 'j',
+        "\xE1\x9F\x92\xE1\x9E\x8F" => 't',
+        "\xE1\x9F\x92\xE1\x9E\x90" => 'T',
+        "\xE1\x9F\x92\xE1\x9E\x91" => 'd',
+        "\xE1\x9F\x92\xE1\x9E\x92" => 'p',
+        "\xE1\x9F\x92\xE1\x9E\x93" => 'n',
+        "\xE1\x9F\x92\xE1\x9E\x94" => 'b',
+        "\xE1\x9F\x92\xE1\x9E\x95" => 'P',
+        "\xE1\x9F\x92\xE1\x9E\x98" => 'm',
+        "\xE1\x9F\x92\xE1\x9E\x99" => 'y',
+        "\xE1\x9F\x92\xE1\x9E\x9A" => 'R',
+        "\xE1\x9F\x92\xE1\x9E\x9B" => 'l',
+        "\xE1\x9F\x92\xE1\x9E\x9C" => 'v',
+        "\xE1\x9F\x92\xE1\x9E\x9F" => 's',
+        "\xE1\x9F\x92\xE1\x9E\xA0" => 'h',
+    ];
+
+    $vowelMap = [
+        "\xE1\x9F\xB6" => 'a',   // ា
+        "\xE1\x9F\xB7" => 'i',   // ិ
+        "\xE1\x9F\xB8" => 'I',   // ី
+        "\xE1\x9F\xB9" => 'y',   // ឹ
+        "\xE1\x9F\xBA" => 'Y',   // ឺ
+        "\xE1\x9F\xBB" => 'u',   // ុ
+        "\xE1\x9F\xBC" => 'U',   // ូ
+        "\xE1\x9F\xBD" => 'W',   // ួ
+        "\xE1\x9F\xBE" => 'eI',  // ើ
+        "\xE1\x9F\xBF" => 'eY',  // ឿ
+        "\xE1\x9F\x80" => 'ei',  // ៀ
+        "\xE1\x9F\x81" => 'e',   // េ
+        "\xE1\x9F\x82" => 'E',   // ែ
+        "\xE1\x9F\x83" => 'ai',  // ៃ
+    ];
+
+    $signMap = [
+        "\xE1\x9F\x86" => 'M', // ំ
+        "\xE1\x9F\x87" => 'H', // ះ
+        "\xE1\x9F\x89" => '"', // ៉
+        "\xE1\x9F\x8A" => '~', // ៊
+        "\xE1\x9F\x8B" => '\'', // ់
+    ];
+
+    $pattern = '/([\x{1780}-\x{17B3}])((\x{17D2}[\x{1780}-\x{17B3}])*)([\x{17B6}-\x{17C5}]?)([\x{17C6}-\x{17D3}]*)/u';
+
+    return preg_replace_callback($pattern, function ($m) use ($consMap, $coengMap, $vowelMap, $signMap) {
+        $baseChar = $m[1];
+        $subscripts = $m[2];
+        $vowel = $m[4];
+        $signs = $m[5];
+
+        $baseLimon = $consMap[$baseChar] ?? $baseChar;
+
+        $preRo = '';
+        $postCoengs = '';
+
+        if ($subscripts !== '') {
+            preg_match_all('/\x{17D2}[\x{1780}-\x{17B3}]/u', $subscripts, $subMatches);
+            foreach ($subMatches[0] as $coeng) {
+                if ($coeng === "\xE1\x9F\x92\xE1\x9E\x9A") {
+                    $preRo = 'R';
+                } else {
+                    $postCoengs .= $coengMap[$coeng] ?? '';
+                }
+            }
+        }
+
+        $leftVowel = '';
+        $rightVowel = '';
+        if ($vowel !== '') {
+            if ($vowel === "\xE1\x9F\x81" || $vowel === "\xE1\x9F\x82" || $vowel === "\xE1\x9F\x83") {
+                $leftVowel = $vowelMap[$vowel] ?? '';
+            } elseif ($vowel === "\xE1\x9F\x84") { // ោ = េ + ា
+                $leftVowel = 'e';
+                $rightVowel = 'a';
+            } elseif ($vowel === "\xE1\x9F\x85") { // ៅ = េ + ៅ
+                $leftVowel = 'e';
+                $rightVowel = 'au';
+            } else {
+                $rightVowel = $vowelMap[$vowel] ?? '';
+            }
+        }
+
+        $signLimon = '';
+        if ($signs !== '') {
+            $signLimon = $signMap[$signs] ?? '';
+        }
+
+        return $leftVowel . $preRo . $baseLimon . $postCoengs . $rightVowel . $signLimon;
+    }, $text);
 }
 
 /**
@@ -897,7 +1021,7 @@ function og_shape_khmer_text($text)
     }, $text);
 }
 
-function og_normalize_text($text)
+function og_normalize_text($text, $font = '')
 {
     $text = (string) $text;
     if (class_exists('Normalizer')) {
@@ -907,12 +1031,16 @@ function og_normalize_text($text)
         }
     }
 
+    if ($font !== '' && strpos(basename($font), 'lmnf1') !== false) {
+        return og_unicode_to_limon($text);
+    }
+
     return og_shape_khmer_text($text);
 }
 
 function og_text_width($text, $size, $font)
 {
-    $text = og_normalize_text($text);
+    $text = og_normalize_text($text, $font);
     if ($font === '') {
         return strlen((string) $text) * $size * 0.55;
     }
@@ -923,7 +1051,7 @@ function og_text_width($text, $size, $font)
 
 function og_fit_text($text, $size, $font, $maxWidth)
 {
-    $text = trim(og_normalize_text($text));
+    $text = trim(og_normalize_text($text, $font));
     if ($text === '' || og_text_width($text, $size, $font) <= $maxWidth) {
         return $text;
     }
@@ -1117,7 +1245,7 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
         // Draw pill background
         og_rounded_rect($canvas, $pillX, $pillY, $pillW, $pillH, (int) ($pillH / 2), $pillBg);
 
-        $normalizedName = og_normalize_text($guestName);
+        $normalizedName = og_normalize_text($guestName, $font);
 
         // ---- Try ImageMagick for proper Khmer/complex script shaping ----
         $textRendered = false;
