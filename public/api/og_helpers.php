@@ -845,8 +845,9 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     $diameter = (int) round(min($rect['w'], $rect['h']) * 0.23);
     $diameter = max(86, min((int) round(min($canvasW, $canvasH) * 0.32), $diameter));
     
+    // Position photo a bit lower vertically (e.g. 42% down instead of 34%)
     $centerX = (int) round($rect['x'] + ($rect['w'] * 0.72));
-    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.34));
+    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.42));
 
     $shadow = imagecolorallocatealpha($canvas, 0, 0, 0, 54);
     $outer = imagecolorallocatealpha($canvas, 255, 255, 255, 28);
@@ -861,7 +862,7 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     og_copy_circle_image($canvas, $avatar, $centerX, $centerY, $diameter);
     imagedestroy($avatar);
 
-    // Draw guest name below guest photo
+    // Draw guest name below guest photo, centered under the photo
     $guestName = is_array($guest) ? ($guest['name'] ?? $guest['guestName'] ?? '') : '';
     if ($guestName !== '') {
         $font = og_font_path('body');
@@ -880,9 +881,18 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
         // Draw pill background & border
         og_rounded_rect($canvas, $pillX, $pillY, $pillW, $pillH, (int) ($pillH / 2), $pillBg);
         
-        // Draw text inside pill
-        $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 2;
-        og_draw_centered_text($canvas, $guestName, $fontSize, $textY, $textWhite, $font, $pillW - 16);
+        // Draw text inside pill centered horizontally under the photo center X
+        $fittedText = og_fit_text($guestName, $fontSize, $font, $pillW - 16);
+        if ($fittedText !== '') {
+            $textWidth = og_text_width($fittedText, $fontSize, $font);
+            $textX = (int) round($centerX - ($textWidth / 2));
+            $textY = $pillY + (int) round(($pillH + $fontSize) / 2) - 2;
+            if ($font !== '') {
+                imagettftext($canvas, $fontSize, 0, $textX, $textY, $textWhite, $font, $fittedText);
+            } else {
+                imagestring($canvas, 5, $textX, $textY - $fontSize, $fittedText, $textWhite);
+            }
+        }
     }
 }
 
