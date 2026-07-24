@@ -713,10 +713,11 @@ function og_font_path($kind = 'body')
             $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
         ]
         : [
-            $publicRoot . '/assets/fonts/Suwannaphum-Regular.ttf',
-            $publicRoot . '/assets/fonts/Hanuman-VariableFont_wght.ttf',
+            $publicRoot . '/assets/fonts/KantumruyPro-Bold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-SemiBold.ttf',
             $publicRoot . '/assets/fonts/KantumruyPro-Regular.ttf',
+            $publicRoot . '/assets/fonts/Suwannaphum-Regular.ttf',
+            $publicRoot . '/assets/fonts/Hanuman-VariableFont_wght.ttf',
         ];
 
     foreach ($candidates as $path) {
@@ -845,9 +846,9 @@ function og_draw_guest_photo_on_movie_poster($canvas, $guest, $baseUrl, $posterR
     $diameter = (int) round(min($rect['w'], $rect['h']) * 0.23);
     $diameter = max(86, min((int) round(min($canvasW, $canvasH) * 0.32), $diameter));
     
-    // Position photo a bit lower vertically (e.g. 42% down instead of 34%)
+    // Position guest photo higher vertically (35% down instead of 42%)
     $centerX = (int) round($rect['x'] + ($rect['w'] * 0.72));
-    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.42));
+    $centerY = (int) round($rect['y'] + ($rect['h'] * 0.35));
 
     $shadow = imagecolorallocatealpha($canvas, 0, 0, 0, 54);
     $outer = imagecolorallocatealpha($canvas, 255, 255, 255, 28);
